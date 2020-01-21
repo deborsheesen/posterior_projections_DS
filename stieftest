@@ -1,0 +1,4 @@
+n = 100; p = 3;
+C = normrnd(0,1,n,p);
+x = stiefproj(C, 0);
+x'*x 
