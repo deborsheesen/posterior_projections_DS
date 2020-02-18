@@ -7,37 +7,72 @@ rDirichlet = function(n, alpha){
   return(x/sm)
 }
 
-# Equality restriction matrix E
-E = matrix(0,4,20)
-for (i in 1:4){
-  E[i,seq(i,20,4)] = 1
-}
-# Inequality restriction matrix IE
-IE = matrix(0,15,20)
+k = c(59,48,44,43,25, 21,14,4,46,44, 54,49,48,47,64, 58,32,30,31,41)
+X = matrix(k, 4,5, byrow=T)
+
+E = matrix(0,4,20)   # Equality restriction matrix E
+for (i in 1:4) {E[i,seq(i,20,4)] = 1}
+
+IE = matrix(0,12,20) # Inequality restriction matrix E
 for (i in 1:3){
-  for (j in 1:5){
-    m = matrix(0,4,5)
-    m[i,1:j] = 1
-    m[(i+1),1:j] = -1
-    ind = 5*(i-1)+j
-    IE[ind,] = c(m)
-  }
+ for (j in 1:4){
+   m = matrix(0,4,5)
+   m[i,1:j] = 1
+   m[(i+1),1:j] = -1
+   ind = 4*(i-1)+j
+   IE[ind,] = c(m)
+ }
 }
-# Total matrix A
-A = rbind(E, IE)
+A = rbind(E, -IE) # Total matrix
+bvec = c(rep(1,4),rep(0,12))
 
-## Data
-X = c(59,48,44,43,25,21,14,4,46,44,54,49,48,47,64,58,32,30,31,41)
-data = matrix(X, 4,5)
-a = 1 # alpha
 
-## Solver basics:
-Dmat = diag(length(X))
+Dmat = diag(length(k))
 Amat = t(A)
-bvec = c(rep(1,4),rep(0,15))
+a = 1 
 
-# Number of samples
-N = 10000
+
+# Generate posterior samples:
+N = 8000
+piPost = array(0,dim=c(4,5,N))
+for (i in 1:4){
+  piPost[i,,] = t(rDirichlet(N, alpha = (X[i,]+a)))
+}
+piPostMean = apply(piPost, c(1,2), mean)
+
+# Project posterior samples:
+piPostProj = array(0,dim=c(4,5,N))
+distPost = double(N)
+for (n in 1:N){
+  sol = solve.QP(Dmat, c(piPost[,,n]), Amat, bvec, meq = 4)$solution
+  piPostProj[,,n] = matrix(sol,4,5)
+  distPost[n] = norm(piPost[,,n]-piPostProj[,,n], type = "F")
+}
+piPostProjMean = apply(piPostProj, c(1,2), mean)
+
+# Bias:
+predicted_means = array(0,dim=c(4,5))
+for (i in 1:4){predicted_means[i,] = rowSums(X)[i]*piPostMean[i,]}
+mean(abs(X-predicted_means))
+
+predicted_means_proj = array(0,dim=c(4,5))
+for (i in 1:4){
+  predicted_means_proj[i,] = rowSums(X)[i]*piPostProjMean[i,]
+}
+mean(abs(X-predicted_means_proj))
+
+
+
+
+
+
+
+
+
+# ================================================================================================
+# ================================================================================================
+
+# OTHER STUFF
 
 ## Generate prior samples:
 piPrior = array(0,dim=c(4,5,N))
@@ -59,39 +94,6 @@ for (n in 1:N){
   
   distPrior[n] = norm(piPrior[,,n]-piPriorProj[,,n], type = "F")
 }
-
-## Generate posterior samples:
-piPost = array(0,dim=c(4,5,N))
-for (i in 1:4){
-  piPost[i,,] = t(rDirichlet(N, alpha = (data[i,]+a)))
-}
-
-# Find posterior mean:
-piPostMean = apply(piPost,1:2, mean)
-piPostCum = t(apply(matrix(piPostMean, 4, 5), 1, cumsum)) # Sanity check: Last column is 1
-
-
-# Project posterior samples:
-piPostProj = array(0,dim=c(4,5,N))
-distPost = double(N)
-for (n in 1:N){
-  temp = c(piPost[,,n])
-  sol = solve.QP(Dmat, temp, Amat, bvec, meq = 4)$solution
-  piPostProj[,,n] = matrix(sol,4,5)
-  distPost[n] = norm(piPost[,,n]-piPostProj[,,n], type = "F")
-}
-
-
-piPostProjMean = apply(piPostProj, 1:2, mean)
-
-X = matrix(k, 4,5, byrow=T) 
-predicted_means_proj = array(0,dim=c(4,5))
-for (i in 1:4){
-  predicted_means_proj[i,] = rowSums(X)[i]*piPostProjMean[i,]
-}
-
-error_proj = X/predicted_means_proj
-
 
 
 piPostProjLow = apply(piPostProj, 1:2, function(i)quantile(i, probs = c(.025)))
@@ -162,7 +164,7 @@ for (a in Alpha){
   # Posterior
   piPost = array(0,dim=c(4,5,N))
   for (i in 1:4){
-    piPost[i,,] = t(rDirichlet(N, alpha = (data[i,]+a)))
+    piPost[i,,] = t(rDirichlet(N, alpha = (X[i,]+a)))
   }
   ## Projected probability
   piPostProj = array(0,dim=c(4,5,N))
