@@ -8,7 +8,7 @@ rDirichlet = function(n, alpha){
 }
 
 k = c(59,48,44,43,25, 21,14,4,46,44, 54,49,48,47,64, 58,32,30,31,41)
-X = matrix(k, 4,5, byrow=T)
+X = matrix(k, 4,5)  #note: **NOT** byrow=T
 
 E = matrix(0,4,20)   # Equality restriction matrix E
 for (i in 1:4) {E[i,seq(i,20,4)] = 1}

@@ -2,7 +2,7 @@ library(multinomineq)
 library(dirmcmc)
 
 k = c(59,48,44,43,25, 21,14,4,46,44, 54,49,48,47,64, 58,32,30,31,41)
-X = matrix(k, 4,5, byrow=T) 
+X = matrix(k, 4,5)  #note: **NOT** byrow=T
 
 A = matrix(c(-1, 0, 0, 0,  1, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0, 
              -1,-1, 0, 0,  1, 1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,
