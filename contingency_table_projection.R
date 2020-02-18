@@ -78,12 +78,22 @@ for (n in 1:N){
   temp = c(piPost[,,n])
   sol = solve.QP(Dmat, temp, Amat, bvec, meq = 4)$solution
   piPostProj[,,n] = matrix(sol,4,5)
-  
   distPost[n] = norm(piPost[,,n]-piPostProj[,,n], type = "F")
 }
 
 
 piPostProjMean = apply(piPostProj, 1:2, mean)
+
+X = matrix(k, 4,5, byrow=T) 
+predicted_means_proj = array(0,dim=c(4,5))
+for (i in 1:4){
+  predicted_means_proj[i,] = rowSums(X)[i]*piPostProjMean[i,]
+}
+
+error_proj = X/predicted_means_proj
+
+
+
 piPostProjLow = apply(piPostProj, 1:2, function(i)quantile(i, probs = c(.025)))
 piPostProjHigh = apply(piPostProj, 1:2, function(i)quantile(i, probs = c(.975)))
 
@@ -117,6 +127,12 @@ for (n in 1:N){
 CUPostProjMean = apply(CUPostProj, 1:2, mean)
 CUPostProjLow = apply(CUPostProj, 1:2, function(i)quantile(i, probs = c(.025)))
 CUPostProjHigh = apply(CUPostProj, 1:2, function(i)quantile(i, probs = c(.975)))
+
+
+
+
+
+
 
 # Plotting mean of $tau^2$ under a sequence of alpha values
 Alpha = c(0.1, 0.5, 1, 5, 10)
@@ -168,25 +184,3 @@ lines(Alpha, distPostMean, col="green", lwd = 3)
 legend("topright", c("Prior", "Posterior"), lty = c(1,1), lwd = c(3,3), col=c("red","green"))
 
 
-# Caclulating Bayes factor
-
-#Some plots
-plot(ecdf(distPrior), col = "red", lwd = 3, lty = 1, main = "", xlab ="", ylab = "")
-lines(ecdf(distPost), col = "green", lwd = 3, lty = 1)
-legend("bottomright", c("Prior", "Posterior"), lty = c(1,1), lwd = c(3,3), col=c("red","green"))
-# P(H0) where H0 is p_(i) follows stochastic order
-
-mean(distPost)
-mean(distPrior)
-BF = function(t){
-  priort = sum(distPrior <= sqrt(t))
-  priorRatio = priort/(N-priort)
-  postt = sum(distPost <= sqrt(t))
-  postRatio = postt/(N-postt)
-  
-  return(postRatio/priorRatio)
-}
-BF(0.005)
-plot(1:N, distPrior)
-plot(1:N, distPost)
-quantile(distPrior, probs = c(.05,.1,.25,.5,.75,.90,.95))
