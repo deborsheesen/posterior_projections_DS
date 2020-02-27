@@ -29,11 +29,11 @@ bvec = c(rep(1,4),rep(0,12))
 
 Dmat = diag(length(k))
 Amat = t(A)
-a = 1 
+a = 1
 
 
 # Generate posterior samples:
-N = 8000
+N = 10000
 piPost = array(0,dim=c(4,5,N))
 for (i in 1:4){
   piPost[i,,] = t(rDirichlet(N, alpha = (X[i,]+a)))
@@ -63,7 +63,8 @@ mean(abs(X-predicted_means_proj))
 
 
 
-
+plot(piPostProj[1,1,], type="l", xlab="", ylab="") 
+title(main="Samples for projections approach", xlab="Sample", ylab="theta_{11}")
 
 
 

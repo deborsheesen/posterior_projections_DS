@@ -6,6 +6,7 @@ data
     int X[N,m,m];     // X is an N-array of (mxm)-matrices 
     real alpha;
     real lmbda;
+    real<lower=0> tau;
 }
 
 parameters 
@@ -48,5 +49,9 @@ model
     }
     target +=  normal_lpdf(to_vector(Z) | 0, sqrt(sigsqZ));
     target +=  gamma_lpdf(1.0/sigsqZ | 2,1);
+    
+    //orthonormality constraint  in U
+    U2 = U'*U - diag_matrix(rep_vector(1.0, p));
+    target += - 1/tau * trace(U2'U2);
 }
 
