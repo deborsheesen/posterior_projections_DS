@@ -1,13 +1,5 @@
-function [x, xnorm] = stiefproj(C, ind)
+function [x] = stiefproj(C)
 [n,p] = size(C);
-
-if ind == 1
-    xnorm = norm(C,'fro');
-    C = C*(1/xnorm);
-else
-    xnorm = norm(C);
-    C = C*(1/xnorm);
-end
  
 % Create the problem structure.
 manifold = stiefelfactory(n, p);

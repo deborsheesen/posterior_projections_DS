@@ -5,7 +5,6 @@ data
     int<lower=1> p;
     int X[N,m,m];     // X is an N-array of (mxm)-matrices 
     real alpha;
-    real lmbda;
 }
 
 parameters 
@@ -21,9 +20,11 @@ parameters
 model 
 {
     matrix[m,m] UDU;
+    real lmbda;
     vector[m] etaUSimplex;
     real etaUSimplexNorm;
     
+    lmbda = 1/2;
     for (n in 1:N)
     {
         UDU = Z + U * diag_matrix(to_vector(D[n,:])) * U';
