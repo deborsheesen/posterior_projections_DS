@@ -24,7 +24,7 @@ model
     vector[m] etaUSimplex;
     real etaUSimplexNorm;
     
-    lmbda = 1/2;
+    lmbda = 0.5;
     for (n in 1:N)
     {
         UDU = Z + U * diag_matrix(to_vector(D[n,:])) * U';
